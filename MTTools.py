@@ -152,7 +152,15 @@ def MT_TransformRev(s):
 def MT_Hash(data):
     return bytearray(MT_SHA256(data).digest())
 
+def MT_ValidSN(s):
+    hi = (s >> 32) & 0xFFFFFFFF
+    if hi >> 8 != 1 or not 0x100 <= hi <= 0x1FF:
+        return False
+    return True
+
 def MT_SWSNToSWID(s):
+    if not MT_ValidSN(s):
+        raise Exception("Invalid SN")
     ret = ""
     for i in range(8):
         ret += chr(SWIDTab[s % 0x23])
@@ -167,5 +175,6 @@ def MT_SWIDToSWSN(s):
     s = s.replace('-', '')
     for i in reversed(range(len(s))):
         ret = ret*0x23 + SWIDTab.index(ord(s[i]))
-
+    if not MT_ValidSN(ret):
+        raise Exception("Decoded to an invalid SN")
     return ret
